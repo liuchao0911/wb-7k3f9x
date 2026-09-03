@@ -415,8 +415,8 @@ function render(){
   const garden=$v('garden').trim(), teacher=$v('teacher').trim(), week=$v('week'), date=$v('date');
   const A=AGES[age], S=SKILLS[skill];
   const T=splitTime(dur);
-  const nb = balls === 0;
-  const short = balls > 0 && balls < kids;
+  const nb = balls === 0 || balls * 3 < kids;
+  const short = !nb && balls < kids;
   const crowded = kids >= 32;
 
   const isSem = MODE==='sem';
@@ -434,7 +434,8 @@ function render(){
   const diffShow = isSem ? spec.kind==='r1' : isNew;
   const shootWeek = isSem ? (spec.kind==='skill'&&spec.skill==='shoot') : (!isNew && skill==='shoot');
   const warns = [];
-  if(nb) warns.push(['red', '🚨 器材预警：篮球 0 个（孩子 '+kids+' 人）——拍球、传球、投篮都无法进行。本教案已按「徒手课」降级生成（新动作改徒手模仿、游戏换无球版）。建议尽快补球，或今天直接改上纯徒手体能课。']);
+  if(balls===0) warns.push(['red', '🚨 器材预警：篮球 0 个（孩子 '+kids+' 人）——拍球、传球、投篮都无法进行。本教案已按「徒手课」降级生成（新动作改徒手模仿、游戏换无球版）。建议尽快补球，或今天直接改上纯徒手体能课。']);
+  else if(nb) warns.push(['red', '🚨 器材严重预警：球 '+balls+' 个 ÷ 孩子 '+kids+' 人（覆盖率 '+Math.round(balls/kids*100)+'%）——按标准教案上，排队等待必然超 2 分钟：纪律混乱、安全隐患、技能目标全部落空。本教案已按「徒手课」降级生成，球集中用于教师示范和「小老师」展示；或与配班商量分批上课。']);
   else if(balls<kids) warns.push(['warn', '⚠ 器材预警：球 '+balls+' 个 ＜ 孩子 '+kids+' 人 → 全课分两大组轮换（一半徒手、一半持球），讲解要更精简。']);
   if(cones<8) warns.push(['note', '锥桶 '+cones+' 个（建议≥8）→ 点位标记用圈、水瓶替代。']);
   if(hoops===0 && shootWeek) warns.push(['note', '篮架 0 个 → 画点、摆圈当篮筐（动作到位才是目标），投篮线用粉笔画。']);

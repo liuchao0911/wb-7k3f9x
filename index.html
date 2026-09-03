@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>幼儿体育老师工作台 · 教案生成器</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  :root {
+    --orange:#C2410C; --deep:#8a3c0e; --cream:#FBF7F0; --line:#E9DFCE; --ink:#2b2620;
+  }
+  body { font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif; background:var(--cream); color:var(--ink); }
+
+  .topbar { background:linear-gradient(135deg,#F0A75F,#C2410C); color:#fff; padding:16px 22px; }
+  .topbar h1 { font-size:21px; letter-spacing:1px; }
+  .topbar .sub { font-size:12px; opacity:.92; margin-top:3px; }
+  .tabs { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+  .tab { padding:7px 16px; border-radius:20px; font-size:13.5px; background:rgba(255,255,255,.16); color:#fff; border:1px solid rgba(255,255,255,.35); cursor:default; }
+  .tab.on { background:#fff; color:var(--orange); font-weight:700; }
+  .tab.soon { opacity:.55; }
+
+  .wrap { display:grid; grid-template-columns:390px 1fr; gap:18px; padding:18px 22px 40px; max-width:1500px; margin:0 auto; }
+  @media (max-width:960px){ .wrap { grid-template-columns:1fr; } }
+
+  .panel { background:#fff; border:1px solid var(--line); border-radius:14px; padding:16px 18px; box-shadow:0 1px 0 rgba(160,120,80,.06); }
+  .panel h2 { font-size:15px; color:var(--deep); margin-bottom:12px; border-left:4px solid var(--orange); padding-left:8px; }
+  .modes { display:flex; gap:8px; margin-bottom:14px; }
+  .mbtn { flex:1; padding:10px; border-radius:10px; border:1px solid var(--line); background:#FFFDF8; font-size:14px; cursor:pointer; color:#7a6a56; font-family:inherit; }
+  .mbtn.on { background:var(--orange); color:#fff; font-weight:700; border-color:var(--orange); }
+  .frow { display:flex; gap:10px; margin-bottom:10px; }
+  .fitem { flex:1; }
+  .fitem label { display:block; font-size:12px; color:#8a7a66; margin-bottom:3px; }
+  .fitem input, .fitem select, .fitem text {
+    width:100%; padding:8px 9px; border:1px solid var(--line); border-radius:8px; font-size:13.5px; background:#FFFDF8; color:var(--ink); font-family:inherit;
+  }
+  .fitem input:focus, .fitem select:focus { outline:2px solid #F0A75F; }
+  .newbox { display:flex; align-items:center; gap:8px; background:#FFF7ED; border:1px solid #F5D9B8; border-radius:10px; padding:10px 12px; margin:12px 0 4px; font-size:13.5px; cursor:pointer; }
+  .newbox input { width:16px; height:16px; accent-color:var(--orange); }
+  .gen { width:100%; margin-top:14px; padding:12px; border:none; border-radius:10px; background:var(--orange); color:#fff; font-size:15px; font-weight:700; cursor:pointer; letter-spacing:2px; }
+  .gen:hover { background:#A63A0A; }
+  .hint { font-size:11.5px; color:#a08c74; line-height:1.6; margin-top:10px; }
+
+  .plan { background:#fff; border:1px solid var(--line); border-radius:14px; padding:26px 30px; }
+  .phd { text-align:center; border-bottom:3px solid var(--orange); padding-bottom:12px; margin-bottom:14px; }
+  .phd h3 { font-size:22px; letter-spacing:2px; }
+  .phd .meta { font-size:12px; color:#7a6a56; margin-top:6px; line-height:1.7; }
+  .frames { background:#FFF7ED; border:1px solid #F5D9B8; border-radius:10px; padding:10px 14px; font-size:12.5px; line-height:1.7; margin-bottom:14px; }
+  .frames b { color:var(--orange); }
+  .goals { display:flex; gap:10px; margin-bottom:14px; }
+  .goal { flex:1; border:1px solid var(--line); border-radius:10px; padding:9px 12px; font-size:12.3px; line-height:1.65; background:#FFFDF8; }
+  .goal b { display:block; color:var(--orange); font-size:12.8px; margin-bottom:3px; }
+
+  .sec { margin:16px 0 6px; font-size:14.5px; color:var(--deep); font-weight:800; }
+  .safety { display:grid; grid-template-columns:1fr 1fr; gap:3px 18px; font-size:12.2px; line-height:1.7; background:#FDF6EC; border:1px solid #F0E2CC; border-radius:10px; padding:11px 15px; }
+  .safety .warn { color:#B4530A; font-weight:700; }
+
+  table.flow { width:100%; border-collapse:collapse; font-size:12.4px; margin-top:6px; }
+  .flow th, .flow td { border:1px solid #D8CCB8; padding:8px 9px; vertical-align:top; line-height:1.65; text-align:left; }
+  .flow th { background:#FBF0E1; color:var(--deep); font-size:12.6px; white-space:nowrap; }
+  .flow td.stage { background:#FFFBF4; white-space:nowrap; font-weight:700; color:var(--deep); width:96px; }
+  .flow td.stage i { display:block; font-style:normal; font-size:11px; color:#B4885A; font-weight:400; margin-top:2px; }
+  .flow b.q { color:var(--orange); }
+  .flow .org { color:#5a4c3a; }
+  .flow .saf { color:#B4530A; }
+
+  table.sem { width:100%; border-collapse:collapse; font-size:12px; margin-top:6px; }
+  .sem th, .sem td { border:1px solid #D8CCB8; padding:6px 8px; vertical-align:top; line-height:1.55; text-align:left; }
+  .sem th { background:#FBF0E1; color:var(--deep); white-space:nowrap; }
+  .sem tr.cur { background:#FFF3E2; font-weight:700; }
+  .sem tr.click { cursor:pointer; }
+  .sem .stage-cell { color:var(--deep); font-weight:700; white-space:nowrap; }
+
+  .layer { display:flex; gap:10px; margin-top:6px; }
+  .lcard { flex:1; border:1px solid var(--line); border-radius:10px; padding:9px 12px; font-size:12.2px; line-height:1.7; background:#FFFDF8; }
+  .lcard b { display:block; color:var(--orange); font-size:12.6px; margin-bottom:2px; }
+
+  .selfcheck { background:#F2FAF4; border:1px solid #CBE5D2; border-radius:10px; padding:11px 15px; font-size:12.2px; line-height:1.85; }
+  .selfcheck .cap { font-weight:800; color:#166534; margin-right:4px; }
+  .note { margin-top:14px; font-size:11px; color:#a08c74; line-height:1.7; border-top:1px dashed var(--line); padding-top:10px; }
+
+  @media print {
+    .topbar, .formcol, .gen, .hint, .noprint { display:none !important; }
+    body { background:#fff; }
+    .wrap { display:block; padding:0; max-width:none; }
+    .plan { border:none; box-shadow:none; padding:0; border-radius:0; }
+    .panel { border:none; }
+    .flow { table-layout:fixed; width:100%; }
+    .flow th:nth-child(1), .flow td.stage { width:11% !important; }
+    .flow th:nth-child(2) { width:6% !important; }
+    .flow th:nth-child(3) { width:13% !important; }
+    .flow th:nth-child(4) { width:37% !important; }
+    .flow th:nth-child(5) { width:18% !important; }
+    .flow th:nth-child(6) { width:15% !important; }
+    .flow th, .flow td { font-size:10.8px; padding:6px 6px; }
+    .sem { font-size:10px; }
+  }
+  @page { size:A4; margin:12mm; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>幼儿体育老师工作台</h1>
+  <div class="sub">把一节「热身＋三个游戏＋放松」的完整教案，变成填一张表的事 · 口径与《3-6岁儿童学习与发展指南》健康领域对齐</div>
+  <div class="tabs">
+    <span class="tab on">📋 教案生成器</span>
+    <span class="tab soon">🌅 晨间游戏库 · 即将上线</span>
+    <span class="tab soon">🔄 体能大循环设计器 · 即将上线</span>
+    <span class="tab soon">📈 学期汇报 · 即将上线</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="panel formcol">
+    <h2>选择模式</h2>
+    <div class="modes">
+      <button type="button" class="mbtn on" id="mSingle" onclick="setMode('single')">单课设计</button>
+      <button type="button" class="mbtn" id="mSem" onclick="setMode('sem')">学期 16 周</button>
+    </div>
+    <div class="frow">
+      <div class="fitem"><label>园所名称</label><input id="garden" placeholder="例：阳光幼儿园"></div>
+      <div class="fitem"><label>教师</label><input id="teacher" placeholder="你的姓名"></div>
+    </div>
+    <div class="frow">
+      <div class="fitem"><label>第几周</label><input id="week" type="number" min="1" max="20" value="1"></div>
+      <div class="fitem"><label>日期</label><input id="date" type="date"></div>
+    </div>
+    <div class="frow">
+      <div class="fitem"><label>班级 *</label>
+        <select id="age">
+          <option value="s">小班（3–4岁）</option>
+          <option value="m" selected>中班（4–5岁）</option>
+          <option value="b">大班（5–6岁）</option>
+        </select>
+      </div>
+      <div class="fitem"><label>人数 *</label><input id="kids" type="number" min="6" max="50" value="30"></div>
+    </div>
+    <div class="frow">
+      <div class="fitem"><label>场地 *</label>
+        <select id="venue"><option value="out">户外操场</option><option value="in">室内</option></select>
+      </div>
+      <div class="fitem"><label>课时（分钟）</label>
+        <select id="dur"><option value="25">25</option><option value="30" selected>30</option><option value="35">35</option></select>
+      </div>
+    </div>
+    <h2 style="margin-top:16px">清点器材（没有填 0）</h2>
+    <div class="frow">
+      <div class="fitem"><label>篮球（个）</label><input id="balls" type="number" min="0" value="30"></div>
+      <div class="fitem"><label>锥桶（个）</label><input id="cones" type="number" min="0" value="8"></div>
+    </div>
+    <div class="frow">
+      <div class="fitem"><label>圈（个）</label><input id="rings" type="number" min="0" value="10"></div>
+      <div class="fitem"><label>篮架（个）</label><input id="hoops" type="number" min="0" value="0"></div>
+    </div>
+    <div id="singleOnly">
+      <h2 style="margin-top:16px">本课教什么</h2>
+      <div class="frow">
+        <div class="fitem"><label>新动作（游戏一）*</label>
+          <select id="skill">
+            <option value="dribble" selected>运球（拍球）</option>
+            <option value="pass">传球</option>
+            <option value="shoot">投篮</option>
+          </select>
+        </div>
+        <div class="fitem"><label>复习内容（游戏二）</label>
+          <select id="review">
+            <option value="auto" selected>自动推荐</option>
+            <option value="ballfeel">球性熟悉／抱球走</option>
+            <option value="dribble">拍球（运球）</option>
+            <option value="pass">传球</option>
+            <option value="shoot">投篮</option>
+          </select>
+        </div>
+      </div>
+      <div class="fitem"><label>本班场景主题（孩子的最大公约数）</label><input id="theme" placeholder="例：奥特曼 / 小猪佩奇 / 水果（留空则用通用名）"></div>
+      <label class="newbox"><input type="checkbox" id="isNew"> 新生班 · 前两三节先上「常规课」，不摆课堂架子</label>
+    </div>
+    <div id="semOnly" style="display:none">
+      <h2 style="margin-top:16px">学期设置</h2>
+      <div class="frow">
+        <div class="fitem"><label>查看第几周</label><select id="semWeek"></select></div>
+        <div class="fitem"><label>本班场景主题</label><input id="theme2" placeholder="例：奥特曼 / 水果"></div>
+      </div>
+      <div class="hint" style="margin-top:0">16 周主线：第1–2周常规课 → 运球段 → 巩固赛 → 传球段 → 巩固赛 → 投篮段 → 综合循环 → 期末测评 → 汇报课。每周逐级升级，直接对应附录 G 进阶路径。</div>
+    </div>
+    <button class="gen" onclick="render()">生 成 教 案</button>
+    <div class="hint">改任意一项，教案即时更新。「Ctrl/Cmd + P」即可打印或存成 PDF。<br>全学期只抓三个基本功：<b>运球（拍球是入门形态）· 传球 · 投篮</b>。完全本地生成，不联网、零费用。</div>
+  </div>
+
+  <div class="plan" id="plan"></div>
+
+</div>
+
+<script>
+const AGES = {
+  s:{name:'小班', ballCnt:5, passDist:'2米内', shootNote:'投大目标（大圈／筐沿）'},
+  m:{name:'中班', ballCnt:20, passDist:'2–3米', shootNote:'投圈／低筐'},
+  b:{name:'大班', ballCnt:30, passDist:'3–4米', shootNote:'近距离简易筐'}
+};
+const SKILLS = {
+  dribble:{
+    name:'运球（拍球）',
+    g1:{
+      s:{ name:'拍拍球宝宝', play:'先玩「球宝宝睡觉」——双手按住球不动；再「叫醒球宝宝」用<b class="q">手指</b>轻轻按，看球宝宝跳起来。话术：<b class="q">「用手指按球，不是用手掌拍；球跳回来要过腰。」</b>示范一遍孩子会了就不多说，直接玩。',
+        std:'检验：能手指按球、连续按 3 下球不跑掉。投不投得高不重要，动作对就行。'},
+      m:{ name:'拍球小达人', play:'原地拍球挑战：<b class="q">「手指按球，球跳回来要过腰。」</b>会拍的加码——左手拍、右手拍；特别熟练的尝试运双球：<b class="q">「两个球只能发出一个声音。」</b>',
+        std:'检验：手指按球、反弹过腰、连续拍 10 个不失误。只看动作，不搞拍球比赛排名。'},
+      b:{ name:'运球闯关', play:'第一关原地连续拍（边拍边报数）→ 第二关<b>走动中运球</b>：从 A 点运到 B 点（约 5 米）球不离手。话术：<b class="q">「手指按球跟着走，球是你的好朋友，别把它弄丢。」</b>',
+        std:'检验：行进间运球走 5 米不掉。运球一步接投篮等组合动作留到复习课。'}
+    },
+    fit:{ name:'红绿灯（运球版）', play:'抱球/运球听口令行进——<b class="q">「绿灯走、红灯停」</b>，口哨=急停。练「听信号＋控球」两条腿，操场绕圈跑动，室内改原地高抬腿＋短折返。'},
+    layer:{ no:'下场带到一边：先「球宝宝睡觉」按住不动，再轻轻按 3 下，体会手指发力；', half:'蹲在旁边一句口令纠错：<b class="q">「手指按，球过腰。」</b>会了立刻退出，去顾下一个；', yes:'加难度：左右手交替拍；中班加运双球（一个声音）；大班加行进运球距离或计数挑战（拍满 N 个来报数）。'}
+  },
+  pass:{
+    name:'传球',
+    g1:{
+      s:{ name:'滚球给好朋友', play:'两人一组面对面坐好（<b>2米内</b>），把球<b>滚</b>给对方。话术：<b class="q">「像把球轻轻推给好朋友——双手推，说『给你』。」</b>对方接住说「谢谢」。',
+        std:'检验：5 次里 3 次滚到同伴手边。不追求空中传接。'},
+      m:{ name:'胸前推传·小碗接', play:'两人一组 '+AGES.m.passDist+' 推传：<b class="q">「双手推，手送出去，说『给你』。」</b>接球方：<b class="q">「小手变小碗，球到胸口再抱住。」</b>听哨一起传、一起收。',
+        std:'检验：3 米推传＋接住，5 次中 3 次。球只飞胸口高度，不乱飞。'},
+      b:{ name:'传球快递员', play:AGES.b.passDist+' 传接（「快递」送到同伴胸口）→ 稳定后加移动接球：接球人先站定接，再试走动中接。接球牢记<b class="q">「小手变小碗，眼睛盯球」</b>。',
+        std:'检验：双人连续传接 10 个不掉。不练长传，不引入争抢。'}
+    },
+    fit:{ name:'冲击波（1、2、3——推！）', play:'两人一组推滚球比远／对墙推球，练<b>上肢推送发力</b>，正好反哺传球投篮的「推、送」。分组轮换，排队不超 2 分钟。'},
+    layer:{ no:'下场带回 2 米退阶：先滚球、再下手推球，体会「推出去、接得住」；', half:'固定 2 米推传，蹲旁边只纠一句：<b class="q">「推——送——给你。」</b>', yes:'加距离到 3–4 米；大班加移动接球；计数挑战「连续 10 个不掉来报数」。'}
+  },
+  shoot:{
+    name:'投篮',
+    g1:{
+      s:{ name:'投喂大嘴巴', play:'把大圈（或筐沿）当「大嘴巴」：双手抱球举高，<b class="q">「蹲下来，把球送出去——跟球说拜拜！」</b>送进大嘴巴。画点、摆圈都能当篮筐。',
+        std:'检验：能做出「蹲＋手随球送出」。进不进不重要，动作对就表扬。'},
+      m:{ name:'神投手（只比动作）', play:'投圈/低筐，规则只有一条：<b class="q">「蹲了、手跟球送出去」才算好球</b>，进不进不加分。站直扔＝重来。画一条投篮线限制距离。',
+        std:'检验：10 次里 7 次动作达标（只评动作，不看来球）。'},
+      b:{ name:'一步投篮组合', play:'近距离投篮动作定型后，加简单组合：<b>运球一步 → 蹲下送球</b>。话术：<b class="q">「运球走近一步，蹲下来，送——拜拜！」</b>',
+        std:'检验：组合动作连贯、动作不变形。不组织投篮比赛。'}
+    },
+    fit:{ name:'冲击波（1、2、3——推！）', play:'两人一组推滚球比远，练<b>推送发力</b>——投篮的「送」全靠它。也可换「老狼老狼几点了（抱球版）」练下肢追逐。分组轮换，等待不超 2 分钟。'},
+    layer:{ no:'先徒手练「蹲下—送—拜拜」，动作做出来再持球，离筐近一点给成功体验；', half:'近距离投圈，只纠一句：<b class="q">「蹲下，手送出去。」</b>', yes:'加距离或换小一点的目标；大班做「运球一步→投篮」组合。'}
+  }
+};
+const REVIEW = {
+  ballfeel:{ name:'球性熟悉／抱球走', play:'「滚出去·捡回来」听哨滚球、捡回抱好；再玩「抱球走弯道」绕锥桶（锥桶少就用圈/水瓶代替），球贴肚子不掉。' },
+  dribble:{ name:'拍球（运球）', play:'「拍球报数挑战」：小班连拍 5 个／中班 10 个／大班 20 个，边拍边报数；大班可加运双球——「两个球只能发出一个声音」。' },
+  pass:{ name:'传球', play:'「开火车传球」：一组纵队，从车头传到车尾，球到了齐喊「呜——」；口令只有一个——双手推、说「给你」，只往胸口传。' },
+  shoot:{ name:'投篮', play:'「神投手·只比动作」：投圈/画点，10 次里 7 次「蹲＋送」达标就集体欢呼，进不进不提。' }
+};
+const AUTO_REVIEW = { dribble:'ballfeel', pass:'dribble', shoot:'pass' };
+const WARMUP = {
+  out:{ name:'关节激活＋跑步', detail:'①关节激活：<b>静态按压</b>（每个部位压住数 5 秒，<b class="saf">不做腕踝、膝关节绕环</b>）＋动物走（熊爬、螃蟹走）；②跑步：绕场慢跑 2 圈，冬天先关节后跑步，别忘跑这一段。' },
+  in:{ name:'关节激活＋原地心肺', detail:'①关节激活：<b>静态按压</b>（不做绕环）＋动物走；②原地高抬腿 20 秒×2 ＋ 短折返跑（用教室/走廊长度）。' }
+};
+const RELAX = '①肌肉放松：两人一组捏一捏小腿、手臂（最基础）；②心理放松：<b class="q">「吹气球」深呼吸</b>——吸气举臂、呼气放下，做 5 次，让心率降下来，孩子不亢奋，平稳回班。';
+const SAFETY = [
+  '地面平整、干燥、无杂物；湿滑改教室',
+  '全员<b>翻口袋</b>：玩具、卡片、硬物清空',
+  '<span class="warn">禁止腕踝、膝关节绕环</span>——用静态按压、动物走替代',
+  '锥桶无裂纹（锯齿口子立即停用）',
+  '篮架螺丝紧、底座配重到位；球网和斜杆不许抓爬（日常讲死）',
+  '球针不进班；电动打气筒连打不超过 5 个球',
+  '人与人间隔<b>一臂打开</b>；传球 2 米起步',
+  '投篮画线或圈，防球反弹砸脸',
+  '<span class="warn">今天打了预防针的孩子：不安排剧烈运动</span>',
+  '场地远离滑梯、单车、玩具堆；雨天转室内近处'
+];
+const CHECKS = {
+  common:'听到「球抱好／球放脚边／眼睛看我」三个口令能立即做到；按组分批取球、还球，不蜂拥。',
+  s:'愿意用手摸球、抱球，不害怕、不退缩。',
+  m:'愿意在集体面前做示范，大胆尝试。',
+  b:'敢于挑战更高难度，并愿意帮助同伴。'
+};
+const FITS = [
+  { name:'红绿灯（运球版）', play:'抱球/运球听口令行进——<b class="q">「绿灯走、红灯停」</b>，口哨=急停。练「听信号＋控球」。室内改原地高抬腿＋短折返。' },
+  { name:'冲击波（1、2、3——推！）', play:'两人一组推滚球比远／对墙推球，练<b>上肢推送发力</b>，反哺传球投篮的「推、送」。' },
+  { name:'老狼老狼几点了（抱球版）', play:'抱球跑动追逐：孩子齐问「老狼老狼几点了」，口哨一响全体定住抱好球。练下肢追逐＋听信号定住。' },
+  { name:'跳圈格', play:'双脚连续跳过圈／格子摆成的路径，练下肢力量与协调；圈不够就用粉笔画格子。' }
+];
+const CONS = {
+  dribble:{ name:'拍球挑战赛', play:'按上周目标全班挑战，当场报数记录：完全不会→按住再轻按 3 下；要指导才会→达标个数（小班 5–10／中班 20／大班 30，按本班进度）；已经会的→加码（左右手／双球／行进）。',
+    std:'检验：每个孩子都比上周拍得更多更稳；记下「会了」名单。'},
+  pass:{ name:'传球达人赛', play:'推传准度赛（5 次中 3）＋「开火车传球」接力。分层：不会→2 米滚球；半会→2 米推传；会→3–4 米推传。',
+    std:'检验：推传 5 中 3 的人数比上周多。'}
+};
+const SEM_SPECIAL = {
+  mix:{ name:'三站小循环', play:'全班分 3 组轮换三站：①拍球站（连拍挑战）②传球站（推传 5 中 3）③投篮站（动作达标 10 次）；哨响换站，每站约 4 分钟。这就是「体能大循环」的雏形。',
+    std:'检验：三站都做完，每站等待不超 2 分钟。' },
+  assess:{ name:'期末测评', play:'按本班定档逐项测：拍球定档个数（小班约 5–10／中班约 20／大班约 30）· 传球 5 中 3 · 投篮动作 10 次；轮空的孩子由配班带球性游戏。<b>定档数字以本园教研通知为准。</b>',
+    std:'检验：记录每项达标名单→写进学期汇报，下学期按新起点定档。' },
+  report:{ name:'篮球操雏形＋最熟游戏', play:'篮球操四步法走前两步：选本班熟的音乐→放来测节奏、全班跟拍；再玩本学期最熟的游戏收尾。拍两帧视频存档（园名周次＋学期成果）。',
+    std:'检验：全班能跟音乐拍 2 个八拍即成功。' }
+};
+const GENERIC_LAYER = { no:'下场带到一边，退阶到上一档动作，先做出来再回来；', half:'蹲旁边一句口令纠错，会了立刻退出；', yes:'当小老师示范，或给更高一档的挑战。' };
+
+let MODE = 'single';
+
+function $v(id){ return document.getElementById(id).value; }
+function themeWrap(t, name){ t=(t||'').trim(); return t? t+'·'+name : name; }
+
+function splitTime(t){
+  const w=Math.round(t*.17), g1=Math.round(t*.33), g2=Math.round(t*.23), r=Math.max(2,Math.round(t*.07));
+  return { w, g1, g2, fit:t-w-g1-g2-r, r };
+}
+
+function setMode(m){
+  MODE = m;
+  document.getElementById('mSingle').className = 'mbtn'+(m==='single'?' on':'');
+  document.getElementById('mSem').className = 'mbtn'+(m==='sem'?' on':'');
+  document.getElementById('singleOnly').style.display = m==='single'?'':'none';
+  document.getElementById('semOnly').style.display = m==='sem'?'':'none';
+  render();
+}
+
+function semWeeks(age){
+  const L = LADDER[age];
+  const arr = [];
+  arr.push({kind:'r1', stage:'常规课①'});
+  arr.push({kind:'r2', stage:'常规课②'});
+  L.dribble.forEach(f=>arr.push({kind:'skill', skill:'dribble', focus:f, stage:'运球（拍球）'}));
+  arr.push({kind:'cons', skill:'dribble', stage:'运球·巩固'});
+  L.pass.forEach(f=>arr.push({kind:'skill', skill:'pass', focus:f, stage:'传球'}));
+  arr.push({kind:'cons', skill:'pass', stage:'传球·巩固'});
+  L.shoot.forEach(f=>arr.push({kind:'skill', skill:'shoot', focus:f, stage:'投篮'}));
+  arr.push({kind:'mix', stage:'综合循环'});
+  arr.push({kind:'assess', stage:'期末测评'});
+  arr.push({kind:'report', stage:'汇报课'});
+  return arr;
+}
+const LADDER = {
+  s:{
+    dribble:['球宝宝睡觉——按住不动，再轻轻按 3 下','连拍 5 个球不跑掉','双手连拍冲 10 个','拍球听口令：喊「球抱好」立刻抱住球'],
+    pass:['对坐滚球，说「给你」','下手推球 2 米内','滚球准度：5 次滚到同伴手边 3 次'],
+    shoot:['双手举球「送——拜拜」送进大圈','近距离投大目标：动作对就表扬']
+  },
+  m:{
+    dribble:['手指按球，反弹过腰','连拍 20 个挑战','左手拍 10 个、右手拍 10 个','运双球入门：「两个球只能发出一个声音」'],
+    pass:['胸前推传 2 米＋小碗手接','推传 3 米：5 次中 3 次','听哨齐传齐收，加一步移动接'],
+    shoot:['蹲送动作达标：蹲了、手随球送出','投篮线后投圈：10 次里 7 次动作达标']
+  },
+  b:{
+    dribble:['连拍 30 个＋节奏报数','行进运球走 5 米不掉','绕锥桶运球变向','运双球同步：「一个声音」'],
+    pass:['3 米传接：连续 10 个不掉','4 米传接＋移动中接球','三人三角传：传给空位同伴'],
+    shoot:['运投组合：运球一步→蹲下送球','近距离简易筐：动作定型不变形']
+  }
+};
+
+function weekSpec(age, w){
+  const weeks = semWeeks(age);
+  const sp = weeks[w-1];
+  const A = AGES[age];
+  const t2 = $v('theme2');
+  sp.week = w;
+  if(sp.kind==='r1'){
+    sp.g1name = '常规第一课：站位·取球·抱球·三口令'; sp.play=''; sp.stdGoal='站好四排；走通取球→抱球→还球流程，听口令行动。';
+    sp.reviewKey = null; sp.fitIdx = 2;
+  } else if(sp.kind==='r2'){
+    sp.g1name = themeWrap(t2,'常规快过＋球性进阶');
+    sp.play = '先快过一遍常规：站四排→小火车取球→抱球姿势→三口令各 2 遍（<b class="q">球抱好/球放脚边/眼睛看我</b>）；然后球性加码：「滚出去·捡回来」提速＋「抱球走弯道」加障碍（锥桶少用圈/水瓶代替）。';
+    sp.stdGoal = '口令一喊全班 3 秒内做到；取球不蜂拥。'; sp.reviewKey = null; sp.fitIdx = 2;
+  } else if(sp.kind==='skill'){
+    const g = SKILLS[sp.skill].g1[age];
+    sp.g1name = themeWrap(t2, g.name);
+    sp.play = g.play + '<br><b class="q">本周升级：</b>' + sp.focus;
+    sp.stdGoal = sp.focus;
+    sp.reviewKey = sp.skill==='dribble' ? 'ballfeel' : (sp.skill==='pass' ? 'dribble' : 'pass');
+    sp.fitIdx = sp.skill==='shoot' ? 1 : (sp.week-1)%4;
+  } else if(sp.kind==='cons'){
+    const c = CONS[sp.skill];
+    sp.g1name = themeWrap(t2, c.name); sp.play=c.play; sp.stdGoal=c.std;
+    sp.reviewKey='ballfeel'; sp.fitIdx=(sp.week)%4;
+  } else {
+    const c = SEM_SPECIAL[sp.kind];
+    sp.g1name = themeWrap(t2, c.name); sp.play=c.play; sp.stdGoal=c.std;
+    sp.reviewKey = sp.kind==='mix' ? 'dribble' : 'ballfeel';
+    sp.fitIdx = sp.kind==='report' ? 3 : (sp.kind==='assess' ? 2 : (sp.week-1)%4);
+  }
+  sp.stageLabel = sp.stage;
+  return sp;
+}
+
+function render(){
+  const age=$v('age'), kids=+ $v('kids'), dur=+$v('dur'), venue=$v('venue');
+  const balls=+$v('balls'), cones=+$v('cones'), rings=+$v('rings'), hoops=+$v('hoops');
+  const isNew=document.getElementById('isNew').checked;
+  const skill=$v('skill'), theme=$v(MODE==='sem'?'theme2':'theme');
+  const garden=$v('garden').trim(), teacher=$v('teacher').trim(), week=$v('week'), date=$v('date');
+  const A=AGES[age], S=SKILLS[skill];
+  const T=splitTime(dur);
+  const short = balls < kids;
+  const crowded = kids >= 32;
+
+  const isSem = MODE==='sem';
+  const semWk = isSem ? +$v('semWeek') : 0;
+  const title = isSem ? A.name+'·16周学期教案（第'+semWk+'周/共16周）' : A.name+'篮球课教案（第'+week+'周）';
+  const stageTxt = isSem ? ' ｜ 本周阶段：'+weekSpec(age,semWk).stage : '';
+
+  const header = `<div class="phd">
+      <h3>${garden? garden+' · ':''}${title}</h3>
+      <div class="meta">班级：${A.name} ｜ 人数：${kids} 人 ｜ 场地：${venue==='out'?'户外操场':'室内'} ｜ 时长：${dur} 分钟
+        ｜ 器材：篮球${balls}·锥桶${cones}·圈${rings}·篮架${hoops}${teacher?' ｜ 教师：'+teacher:''}${date?' ｜ '+date:''}${stageTxt}</div>
+    </div>`;
+
+  const spec = isSem ? weekSpec(age,semWk) : null;
+  const goalSkillTxt = isSem ? spec.stdGoal : (isNew? '学会固定抱球姿势（双手抱贴肚子/单手抱靠边，全班统一）。' : S.g1[age].std.replace(/^检验：/,''));
+  const goalCommonTxt = isSem ? CHECKS.common : (isNew? '站好四排；走通取球→抱球→还球流程，听口令行动。' : CHECKS.common);
+  const goalEmoTxt = isSem ? CHECKS[age] : (isNew? '愿意来上课、愿意碰球，觉得好玩。' : CHECKS[age]);
+  const goals = `<div class="goals">
+      <div class="goal"><b>常规目标</b>${goalCommonTxt}</div>
+      <div class="goal"><b>技能目标</b>${goalSkillTxt}</div>
+      <div class="goal"><b>情感目标</b>${goalEmoTxt}</div>
+    </div>`;
+
+  const frameGoal = isSem ? spec.stdGoal : (isNew? '课堂常规：站位·取球·抱球·三口令' : S.name+'：'+goalSkillTxt);
+  const frames = `<div class="frames"><b>拍视频开头两帧：</b>第 1 帧「${garden||'××园'} 第${isSem? semWk : week}周篮球课」→ 第 2 帧「教学目标：${frameGoal}」。视频控制在 1 分钟左右，发工作群不发家长群。</div>`;
+
+  const safetyBox = `<div class="sec">课前 3 分钟安全检查（每课必过 · 贯穿全程）</div>
+    <div class="safety">${SAFETY.map(s=>'<div>□ '+s+'</div>').join('')}</div>`;
+
+  const orgBase = '四排横队，间隔一臂；听信号按组分批取球（第一排→第四排，像小火车）';
+  const orgMods = [];
+  if(short) orgMods.push('球不够→分两大组轮换：一半徒手游戏、一半持球练，中间轮换；讲解再精简');
+  if(crowded) orgMods.push('人数多→按能力分 A/B 组教同一动作，配班老师盯一组；热身放松全体一起');
+  if(!isSem && !isNew && skill==='shoot' && hoops===0) orgMods.push('篮架不足→画点、摆圈当篮筐，投篮线用粉笔画（动作到位才是目标）');
+  if(isSem && spec.kind==='skill' && spec.skill==='shoot' && hoops===0) orgMods.push('篮架不足→画点、摆圈当篮筐，投篮线用粉笔画（动作到位才是目标）');
+  if(cones<8 && (isSem ? spec.kind!=='r1' : !isNew)) orgMods.push('锥桶不足→用圈、水瓶替代点位标记');
+  const orgLine = orgBase + (orgMods.length? '；'+orgMods.join('；') : '');
+
+  let rows=''; let layerHtml='';
+
+  if(isSem){
+    if(spec.kind==='r1'){
+      rows = routineRows(T, theme, venue, orgBase);
+    } else {
+      const g1saf = spec.kind==='skill' && spec.skill==='pass' ? '传球 2 米起步、只往胸口传，听哨齐传齐收' : (spec.kind==='skill' && spec.skill==='shoot' ? '画投篮线/圈防反弹砸脸；投不进不纠缠' : '间距一臂；球失控先停再听讲');
+      const revPlay = spec.reviewKey ? REVIEW[spec.reviewKey] : null;
+      const fit = FITS[spec.fitIdx];
+      rows = flowRow('1 热身', T.w, WARMUP[venue].name, WARMUP[venue].detail, '不取球，四排站好', '禁止绕环；冬天先关节后跑步');
+      if(spec.kind==='r2'){
+        rows += flowRow('2 常规快过', 3, '站位取球＋三口令', '站四排→小火车取球→抱球姿势→三口令各 2 遍：<b class="q">球抱好/球放脚边/眼睛看我</b>。', orgBase, '取球环节最容易乱，慢就是快')
+              + flowRow('3 游戏一·球性进阶', T.g1+T.g2-3, spec.g1name, spec.play, '示范一遍会就不用多说', '间距一臂');
+      } else {
+        rows += flowRow('2 游戏一·'+ (spec.kind==='skill'? '学新动作':'本周主打'), T.g1, spec.g1name, spec.play + '<br><b>组织：</b>'+orgLine, '示范一遍会就不用多说——别把体育课上成语言课', g1saf)
+              + flowRow('3 游戏二·复习', T.g2, themeWrap(theme, revPlay.name), revPlay.play+'<br><b>组织：</b>'+orgLine, '已会动作保证练习量；分组轮换时配班盯一组', spec.reviewKey==='pass' ? '2 米起、只往胸口，哨响齐传齐收' : '间距一臂');
+      }
+      rows += flowRow('4 游戏三·体能', T.fit, themeWrap(theme,fit.name), fit.play+'<br><b>不能省：</b>体能是基础能力，砍掉违背课程设计。', '分组轮换，排队等待超 2 分钟=分组设计有问题', '抛球往两边偏、不朝中间；追逐规定路线')
+            + flowRow('5 放松', T.r, '肌肉＋心率', RELAX, '围圈坐好', '心率降下来再回班');
+    }
+    const layerSrc = spec.kind==='skill' ? SKILLS[spec.skill].layer : (spec.kind==='cons' ? SKILLS[spec.skill].layer : (spec.kind==='r1' ? null : GENERIC_LAYER));
+    if(layerSrc) layerHtml = layerBox(layerSrc);
+    layerHtml += semTableHtml(age, semWk);
+  } else {
+    if(isNew){
+      rows = routineRows(T, theme, venue, orgBase);
+    } else {
+      let revKey = $v('review');
+      if(revKey==='auto' || revKey===skill) revKey = AUTO_REVIEW[skill];
+      const R = REVIEW[revKey];
+      const g=S.g1[age];
+      const fitName = venue==='in' ? S.fit.name+'（室内版：幅度减半、取消追逐）' : S.fit.name;
+      rows = flowRow('1 热身', T.w, WARMUP[venue].name, WARMUP[venue].detail, '不取球，四排站好', '禁止绕环；冬天先关节后跑步')
+          + flowRow('2 游戏一·学新动作', T.g1, themeWrap(theme,g.name), g.play+'<br><b>组织：</b>'+orgLine, '示范一遍会就不用多说——别把体育课上成语言课', skill==='pass' ? '传球 2 米起步、只往胸口传，听哨齐传齐收' : (skill==='shoot' ? '画投篮线/圈防反弹砸脸；投不进不纠缠' : '间距一臂；球失控先停再听讲'))
+          + flowRow('3 游戏二·复习', T.g2, themeWrap(theme,R.name), R.play+'<br><b>组织：</b>'+orgLine, '已会动作保证练习量；分组轮换时配班盯一组', revKey==='pass' ? '2 米起、只往胸口，哨响齐传齐收' : '间距一臂')
+          + flowRow('4 游戏三·体能', T.fit, themeWrap(theme,fitName), S.fit.play+'<br><b>不能省：</b>体能是基础能力，砍掉违背课程设计；新动作大面积卡壳时本节可挪用，下节课要补回。', '分组轮换，排队等待超 2 分钟=分组设计有问题', '抛球往两边偏、不朝中间；追逐规定路线')
+          + flowRow('5 放松', T.r, '肌肉＋心率', RELAX, '围圈坐好', '心率降下来再回班');
+      layerHtml = layerBox(S.layer);
+    }
+  }
+
+  const flow = `<div class="sec">课堂流程（共 ${dur} 分钟）</div>
+    <table class="flow"><tr><th style="width:96px">环节</th><th style="width:44px">时间</th><th style="width:150px">玩法</th><th>内容与话术</th><th style="width:170px">组织要点</th><th style="width:150px">安全要点</th></tr>${rows}</table>`;
+
+  const checks = `<div class="sec">下课 1 分钟自评（两指标＋四有）</div>
+    <div class="selfcheck">
+      <span class="cap">指标一</span>孩子的游戏参与时间：60%–80% 为佳；＜60% 要反思；全程纯玩没结构也不算好课。<br>
+      <span class="cap">指标二</span>这节课我下场指导了几个「不会的孩子」？只站上面教＝不合格信号。<br>
+      <span class="cap">四有自查</span>有趣（语言起伏·肢体夸张·场景贴本班）· 有序（口令灵·注意力收得回）· 有量（参与达标·体能没省）· 有效（技能目标看得见）。
+    </div>`;
+
+  const note = `<div class="note">口径说明：三基本功＝运球（拍球是入门形态）·传球·投篮；三个通用口令＝球抱好/球放脚边/眼睛看我；热身禁腕踝膝绕环；体能游戏每课必有。传球比喻与分龄数字为补充草案，分龄定档以本园教研通知为准。生成自「幼儿体育老师工作台 · 教案生成器」。</div>`;
+
+  document.getElementById('plan').innerHTML = header + frames + goals + safetyBox + flow + layerHtml + checks + note;
+}
+
+function layerBox(L){
+  return `<div class="sec">分层指导（核心任务：下场教不会的孩子）</div>
+  <div class="layer">
+    <div class="lcard"><b>完全不会 → 下场指导</b>${L.no}</div>
+    <div class="lcard"><b>要指导才会 → 一句口令纠错</b>${L.half}</div>
+    <div class="lcard"><b>已经会的 → 加难度</b>${L.yes}</div>
+  </div>`;
+}
+
+function routineRows(T, theme, venue, orgBase){
+  return flowRow('1 热身', T.w, WARMUP[venue].name, WARMUP[venue].detail, '不取球，先站四排', '禁止绕环；冬天先关节后跑步')
+    + flowRow('2 站位与取球', 4, '站四排＋「小火车」取球', '定好球筐位置和行走路线；听信号一组一组取球——<b class="q">「第一排先来，一组一组像小火车。」</b>拿到球立刻抱好。', orgBase, '取球环节最容易乱，慢就是快')
+    + flowRow('3 抱球姿势＋三口令', 5, '固定抱球＋口令演练', '固定抱球：双手抱贴肚子/单手抱靠边（全班统一）。三口令各练 3 遍：<b class="q">球抱好 / 球放脚边 / 眼睛看我</b>。口哨只用三处：令行禁止、危险、游戏开始。', '孩子吵你别喊——先用口令抓回注意力再说话', '')
+    + flowRow('4 注意力游戏', 5, themeWrap(theme,'举球比高')+' ＋ '+themeWrap(theme,'口香糖'), '「把球举起来，看谁举到最高」→「篮球变口香糖，粘住小肚子/粘住头」。球被「管」住，人进入游戏状态。', '这是之后每节课抓注意力的常规武器', '')
+    + flowRow('5 球性游戏', T.g1+T.g2+T.fit-14, themeWrap(theme,'滚出去·捡回来'), '不摆课堂架子，先让孩子愿意玩：滚出去、听哨停、捡回来抱好；玩熟了加「抱球走弯道」。<b>本环节兼体能位</b>——末尾加 2 分钟「老狼老狼（抱球版）」追逐，保证运动量。', '间距一臂；场地空旷无干扰', '')
+    + flowRow('6 放松', T.r, '肌肉＋心率', RELAX, '围圈坐好', '心率降下来再回班');
+}
+
+function semTableHtml(age, cur){
+  const weeks = semWeeks(age);
+  const rows = weeks.map((w,i)=>{
+    const n=i+1;
+    const spec = weekSpec(age, n);
+    const g1 = spec.kind==='r1' ? '站位·取球·抱球·三口令' : (spec.kind==='skill' ? spec.focus : spec.g1name);
+    const rev = spec.reviewKey ? REVIEW[spec.reviewKey].name : '—';
+    const fit = spec.kind==='r1' ? '（球性游戏兼体能位）' : FITS[spec.fitIdx].name;
+    return `<tr class="click${n===cur?' cur':''}" onclick="document.getElementById('semWeek').value=${n};render()"><td>${n}</td><td class="stage-cell">${w.stage}</td><td>${g1}</td><td>${rev}</td><td>${fit}</td></tr>`;
+  }).join('');
+  return `<div class="sec">16 周课表总览（点任意一行查看该周教案）</div>
+  <table class="sem"><tr><th>周</th><th>阶段</th><th>游戏一 · 本周重点</th><th>游戏二复习</th><th>体能</th></tr>${rows}</table>`;
+}
+
+function flowRow(stage, min, name, play, org, saf){
+  return `<tr><td class="stage">${stage}<i>${min} 分钟</i></td><td style="text-align:center">${min}′</td><td><b>${name}</b></td><td>${play}</td><td class="org">${org}</td><td class="saf">${saf||'—'}</td></tr>`;
+}
+
+(function initSemSelect(){
+  const sel = document.getElementById('semWeek');
+  for(let i=1;i<=16;i++){
+    const o=document.createElement('option'); o.value=i; o.textContent='第 '+i+' 周'; sel.appendChild(o);
+  }
+})();
+
+document.querySelectorAll('.formcol input, .formcol select').forEach(el=>{
+  el.addEventListener('input', render);
+  el.addEventListener('change', render);
+});
+render();
+</script>
+</body>
+</html>

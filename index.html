@@ -76,6 +76,15 @@
 
   .selfcheck { background:#F2FAF4; border:1px solid #CBE5D2; border-radius:10px; padding:11px 15px; font-size:12.2px; line-height:1.85; }
   .selfcheck .cap { font-weight:800; color:#166534; margin-right:4px; }
+  .warnbox { margin-bottom:14px; border-radius:10px; overflow:hidden; border:1px solid #FCA5A5; }
+  .warnbox > div { padding:9px 14px; font-size:12.6px; line-height:1.7; }
+  .warnbox .w-red { background:#FEE2E2; color:#991B1B; font-weight:700; }
+  .warnbox .w-warn { background:#FEF3C7; color:#92400E; }
+  .warnbox .w-note { background:#FFF7ED; color:#9A3412; }
+  .warnbox > div + div { border-top:1px solid rgba(0,0,0,.06); }
+  .diffbox { background:#F2FAF4; border:1px solid #CBE5D2; border-radius:10px; padding:10px 14px; font-size:12.4px; line-height:1.8; margin-bottom:14px; }
+  .diffbox b { color:#166534; }
+  .tnote { font-size:12px; color:#8a5a2a; background:#FFF7ED; border:1px dashed #E8C89E; border-radius:8px; padding:7px 12px; margin-top:8px; line-height:1.7; }
   .note { margin-top:14px; font-size:11px; color:#a08c74; line-height:1.7; border-top:1px dashed var(--line); padding-top:10px; }
 
   @media print {
@@ -140,8 +149,8 @@
       <div class="fitem"><label>场地 *</label>
         <select id="venue"><option value="out">户外操场</option><option value="in">室内</option></select>
       </div>
-      <div class="fitem"><label>课时（分钟）</label>
-        <select id="dur"><option value="25">25</option><option value="30" selected>30</option><option value="35">35</option></select>
+      <div class="fitem"><label>课时（分钟）· 随班龄</label>
+        <select id="dur"></select>
       </div>
     </div>
     <h2 style="margin-top:16px">清点器材（没有填 0）</h2>
@@ -185,7 +194,7 @@
       <div class="hint" style="margin-top:0">16 周主线：第1–2周常规课 → 运球段 → 巩固赛 → 传球段 → 巩固赛 → 投篮段 → 综合循环 → 期末测评 → 汇报课。每周逐级升级，直接对应附录 G 进阶路径。</div>
     </div>
     <button class="gen" onclick="render()">生 成 教 案</button>
-    <div class="hint">改任意一项，教案即时更新。「Ctrl/Cmd + P」即可打印或存成 PDF。<br>全学期只抓三个基本功：<b>运球（拍球是入门形态）· 传球 · 投篮</b>。完全本地生成，不联网、零费用。</div>
+    <div class="hint">改任意一项，教案即时更新。「Ctrl/Cmd + P」即可打印或存成 PDF。<br>课时随班龄：小班 10–15 分钟 · 中班 20–25 分钟 · 大班 25–30 分钟，切换班龄自动带出。<br>全学期只抓三个基本功：<b>运球（拍球是入门形态）· 传球 · 投篮</b>。完全本地生成，不联网、零费用。</div>
   </div>
 
   <div class="plan" id="plan"></div>
@@ -275,6 +284,13 @@ const FITS = [
   { name:'老狼老狼几点了（抱球版）', play:'抱球跑动追逐：孩子齐问「老狼老狼几点了」，口哨一响全体定住抱好球。练下肢追逐＋听信号定住。' },
   { name:'跳圈格', play:'双脚连续跳过圈／格子摆成的路径，练下肢力量与协调；圈不够就用粉笔画格子。' }
 ];
+const HANDS_FREE = {
+  dribble:{ name:'徒手·拍球手型节奏', play:'两人一组面对面，空手做「手指按拍」：手成小碗状，听口令「按—抬—按—抬」找节奏，熟练后边走边做。<b class="q">球到位后第一件事：手指按球，反弹过腰。</b>' },
+  pass:{ name:'徒手·推送给好朋友', play:'两人一组面对面，空手对做传球动作：双手「推—送—给你」，手送到指尖，对方做「小碗」接的动作。<b class="q">球到位后：2 米起步、只往胸口传。</b>' },
+  shoot:{ name:'徒手·蹲下送拜拜', play:'全班围圈，空手练投篮动作：双手举球姿势→蹲下→双手送出去说「拜拜」。先做对动作，不碰球。<b class="q">球到位后：近距离投大目标，动作对就表扬。</b>' }
+};
+const HF_GAME = { name:'口香糖（无球版）', play:'老师喊「篮球变口香糖，粘住小肚子/粘住头/粘住膝盖」，孩子快速贴住对应部位——无球也能练听信号快速反应。' };
+const HF_FIT = FITS[3];
 const CONS = {
   dribble:{ name:'拍球挑战赛', play:'按上周目标全班挑战，当场报数记录：完全不会→按住再轻按 3 下；要指导才会→达标个数（小班 5–10／中班 20／大班 30，按本班进度）；已经会的→加码（左右手／双球／行进）。',
     std:'检验：每个孩子都比上周拍得更多更稳；记下「会了」名单。'},
@@ -296,9 +312,23 @@ let MODE = 'single';
 function $v(id){ return document.getElementById(id).value; }
 function themeWrap(t, name){ t=(t||'').trim(); return t? t+'·'+name : name; }
 
+const TIME_BUDGET = {
+  10:{w:2,g1:4,g2:0,fit:3,r:1},
+  15:{w:3,g1:6,g2:0,fit:4,r:2},
+  20:{w:3,g1:7,g2:4,fit:4,r:2},
+  25:{w:4,g1:8,g2:5,fit:6,r:2},
+  30:{w:5,g1:10,g2:7,fit:6,r:2}
+};
 function splitTime(t){
+  if(TIME_BUDGET[t]) return TIME_BUDGET[t];
   const w=Math.round(t*.17), g1=Math.round(t*.33), g2=Math.round(t*.23), r=Math.max(2,Math.round(t*.07));
   return { w, g1, g2, fit:t-w-g1-g2-r, r };
+}
+const DUR = { s:[10,15], m:[20,25], b:[25,30] };
+function syncDur(){
+  const sel=document.getElementById('dur'), opts=DUR[$v('age')], cur=+sel.value;
+  sel.innerHTML = opts.map(v=>'<option value="'+v+'">'+v+'</option>').join('');
+  sel.value = opts.includes(cur) ? cur : opts[opts.length-1];
 }
 
 function setMode(m){
@@ -385,12 +415,13 @@ function render(){
   const garden=$v('garden').trim(), teacher=$v('teacher').trim(), week=$v('week'), date=$v('date');
   const A=AGES[age], S=SKILLS[skill];
   const T=splitTime(dur);
-  const short = balls < kids;
+  const nb = balls === 0;
+  const short = balls > 0 && balls < kids;
   const crowded = kids >= 32;
 
   const isSem = MODE==='sem';
   const semWk = isSem ? +$v('semWeek') : 0;
-  const title = isSem ? A.name+'·16周学期教案（第'+semWk+'周/共16周）' : A.name+'篮球课教案（第'+week+'周）';
+  const title = isSem ? A.name+'·16周学期教案（第'+semWk+'周/共16周）' : (isNew ? A.name+'新生常规课（第'+week+'周）' : A.name+'篮球课教案（第'+week+'周）');
   const stageTxt = isSem ? ' ｜ 本周阶段：'+weekSpec(age,semWk).stage : '';
 
   const header = `<div class="phd">
@@ -400,6 +431,16 @@ function render(){
     </div>`;
 
   const spec = isSem ? weekSpec(age,semWk) : null;
+  const diffShow = isSem ? spec.kind==='r1' : isNew;
+  const shootWeek = isSem ? (spec.kind==='skill'&&spec.skill==='shoot') : (!isNew && skill==='shoot');
+  const warns = [];
+  if(nb) warns.push(['red', '🚨 器材预警：篮球 0 个（孩子 '+kids+' 人）——拍球、传球、投篮都无法进行。本教案已按「徒手课」降级生成（新动作改徒手模仿、游戏换无球版）。建议尽快补球，或今天直接改上纯徒手体能课。']);
+  else if(balls<kids) warns.push(['warn', '⚠ 器材预警：球 '+balls+' 个 ＜ 孩子 '+kids+' 人 → 全课分两大组轮换（一半徒手、一半持球），讲解要更精简。']);
+  if(cones<8) warns.push(['note', '锥桶 '+cones+' 个（建议≥8）→ 点位标记用圈、水瓶替代。']);
+  if(hoops===0 && shootWeek) warns.push(['note', '篮架 0 个 → 画点、摆圈当篮筐（动作到位才是目标），投篮线用粉笔画。']);
+  if(kids>=32) warns.push(['note', '人数 '+kids+' 人（≥32）→ 按能力分 A/B 组教同一动作，配班老师盯一组；热身放松全体一起。']);
+  const warnHtml = warns.length ? '<div class="warnbox">'+warns.map(w=>'<div class="w-'+w[0]+'">'+w[1]+'</div>').join('')+'</div>' : '';
+  const diffHtml = diffShow ? '<div class="diffbox"><b>新生常规课 · 和普通课的 3 点不同：</b>① 不摆课堂架子——先让孩子愿意来、愿意碰球，不急着教新动作；② 全课只立常规——站位·取球·抱球·三口令，这是之后每节课的地基；③ 球性游戏兼体能位——末尾加追逐保证运动量。前两三节都上它，约两周见效后再转入正常篮球课。</div>' : '';
   const goalSkillTxt = isSem ? spec.stdGoal : (isNew? '学会固定抱球姿势（双手抱贴肚子/单手抱靠边，全班统一）。' : S.g1[age].std.replace(/^检验：/,''));
   const goalCommonTxt = isSem ? CHECKS.common : (isNew? '站好四排；走通取球→抱球→还球流程，听口令行动。' : CHECKS.common);
   const goalEmoTxt = isSem ? CHECKS[age] : (isNew? '愿意来上课、愿意碰球，觉得好玩。' : CHECKS[age]);
@@ -419,54 +460,70 @@ function render(){
   const orgMods = [];
   if(short) orgMods.push('球不够→分两大组轮换：一半徒手游戏、一半持球练，中间轮换；讲解再精简');
   if(crowded) orgMods.push('人数多→按能力分 A/B 组教同一动作，配班老师盯一组；热身放松全体一起');
-  if(!isSem && !isNew && skill==='shoot' && hoops===0) orgMods.push('篮架不足→画点、摆圈当篮筐，投篮线用粉笔画（动作到位才是目标）');
-  if(isSem && spec.kind==='skill' && spec.skill==='shoot' && hoops===0) orgMods.push('篮架不足→画点、摆圈当篮筐，投篮线用粉笔画（动作到位才是目标）');
-  if(cones<8 && (isSem ? spec.kind!=='r1' : !isNew)) orgMods.push('锥桶不足→用圈、水瓶替代点位标记');
   const orgLine = orgBase + (orgMods.length? '；'+orgMods.join('；') : '');
 
   let rows=''; let layerHtml='';
 
   if(isSem){
     if(spec.kind==='r1'){
-      rows = routineRows(T, theme, venue, orgBase);
+      rows = routineRows(T, theme, venue, orgBase, dur, nb);
     } else {
       const g1saf = spec.kind==='skill' && spec.skill==='pass' ? '传球 2 米起步、只往胸口传，听哨齐传齐收' : (spec.kind==='skill' && spec.skill==='shoot' ? '画投篮线/圈防反弹砸脸；投不进不纠缠' : '间距一臂；球失控先停再听讲');
       const revPlay = spec.reviewKey ? REVIEW[spec.reviewKey] : null;
-      const fit = FITS[spec.fitIdx];
+      const fit = nb ? HF_FIT : FITS[spec.fitIdx];
+      const nbSkill = nb && spec.kind==='skill';
+      const nbBall = nb && ['cons','assess','mix','report'].includes(spec.kind);
       rows = flowRow('1 热身', T.w, WARMUP[venue].name, WARMUP[venue].detail, '不取球，四排站好', '禁止绕环；冬天先关节后跑步');
       if(spec.kind==='r2'){
-        rows += flowRow('2 常规快过', 3, '站位取球＋三口令', '站四排→小火车取球→抱球姿势→三口令各 2 遍：<b class="q">球抱好/球放脚边/眼睛看我</b>。', orgBase, '取球环节最容易乱，慢就是快')
-              + flowRow('3 游戏一·球性进阶', T.g1+T.g2-3, spec.g1name, spec.play, '示范一遍会就不用多说', '间距一臂');
+        const qk = T.g2>0 ? 3 : 2;
+        const ballName = nb ? themeWrap(theme,'徒手·听号令游戏') : spec.g1name;
+        const ballPlay = nb ? '口香糖＋木头人（无球版）先玩起来；球到位后第一时间补「滚出去·捡回来」＋「抱球走弯道」。' : spec.play;
+        rows += flowRow('2 常规快过', qk, '站位取球＋三口令', '站四排→小火车取球→抱球姿势→三口令各 2 遍：<b class="q">球抱好/球放脚边/眼睛看我</b>。', orgBase, '取球环节最容易乱，慢就是快')
+              + flowRow('3 游戏一·球性进阶', T.g1+T.g2-qk, ballName, ballPlay, '示范一遍会就不用多说', '间距一臂');
       } else {
-        rows += flowRow('2 游戏一·'+ (spec.kind==='skill'? '学新动作':'本周主打'), T.g1, spec.g1name, spec.play + '<br><b>组织：</b>'+orgLine, '示范一遍会就不用多说——别把体育课上成语言课', g1saf)
-              + flowRow('3 游戏二·复习', T.g2, themeWrap(theme, revPlay.name), revPlay.play+'<br><b>组织：</b>'+orgLine, '已会动作保证练习量；分组轮换时配班盯一组', spec.reviewKey==='pass' ? '2 米起、只往胸口，哨响齐传齐收' : '间距一臂');
+        let g1play = nbSkill ? HANDS_FREE[spec.skill].play : ((nbBall ? '<span style="color:#B91C1C;font-weight:800">⚠ 0 球：本环节需要篮球——今天先改为队形演练＋徒手动作讲解，或调整到有球日补上。</span><br>' : '') + spec.play);
+        if(T.g2===0) g1play += '<br><b>课时短：</b>本节不安排复习，下节课先复习这个动作再推进。';
+        const g1name = nbSkill ? themeWrap(theme, HANDS_FREE[spec.skill].name) : spec.g1name;
+        rows += flowRow('2 游戏一·'+ (spec.kind==='skill'? '学新动作':'本周主打'), T.g1, g1name, g1play + '<br><b>组织：</b>'+orgLine, '示范一遍会就不用多说——别把体育课上成语言课', g1saf);
+        if(T.g2>0 && revPlay){
+          rows += flowRow('3 游戏二·复习', T.g2, nb?HF_GAME.name:themeWrap(theme, revPlay.name), (nb?HF_GAME.play:revPlay.play)+'<br><b>组织：</b>'+orgLine, '已会动作保证练习量；分组轮换时配班盯一组', !nb && spec.reviewKey==='pass' ? '2 米起、只往胸口，哨响齐传齐收' : '间距一臂');
+        }
       }
-      rows += flowRow('4 游戏三·体能', T.fit, themeWrap(theme,fit.name), fit.play+'<br><b>不能省：</b>体能是基础能力，砍掉违背课程设计。', '分组轮换，排队等待超 2 分钟=分组设计有问题', '抛球往两边偏、不朝中间；追逐规定路线')
-            + flowRow('5 放松', T.r, '肌肉＋心率', RELAX, '围圈坐好', '心率降下来再回班');
+      rows += flowRow((T.g2>0?'4':'3')+' 游戏三·体能', T.fit, nb?HF_FIT.name:themeWrap(theme,fit.name), (nb?HF_FIT.play:fit.play)+'<br><b>不能省：</b>体能是基础能力，砍掉违背课程设计。', '分组轮换，排队等待超 2 分钟=分组设计有问题', '抛球往两边偏、不朝中间；追逐规定路线')
+            + flowRow((T.g2>0?'5':'4')+' 放松', T.r, '肌肉＋心率', RELAX, '围圈坐好', '心率降下来再回班');
     }
     const layerSrc = spec.kind==='skill' ? SKILLS[spec.skill].layer : (spec.kind==='cons' ? SKILLS[spec.skill].layer : (spec.kind==='r1' ? null : GENERIC_LAYER));
     if(layerSrc) layerHtml = layerBox(layerSrc);
     layerHtml += semTableHtml(age, semWk);
   } else {
     if(isNew){
-      rows = routineRows(T, theme, venue, orgBase);
+      rows = routineRows(T, theme, venue, orgBase, dur, nb);
     } else {
       let revKey = $v('review');
       if(revKey==='auto' || revKey===skill) revKey = AUTO_REVIEW[skill];
-      const R = REVIEW[revKey];
-      const g=S.g1[age];
-      const fitName = venue==='in' ? S.fit.name+'（室内版：幅度减半、取消追逐）' : S.fit.name;
+      const R = nb ? HF_GAME : REVIEW[revKey];
+      const g = nb ? HANDS_FREE[skill] : S.g1[age];
+      const fitName = nb ? HF_FIT.name : (venue==='in' ? S.fit.name+'（室内版：幅度减半、取消追逐）' : S.fit.name);
+      const fitPlay = nb ? HF_FIT.play : S.fit.play;
+      let g1play = g.play+'<br><b>组织：</b>'+orgLine;
+      if(T.g2===0) g1play += '<br><b>课时短：</b>本节不安排复习，下节课先复习这个动作再推进。';
       rows = flowRow('1 热身', T.w, WARMUP[venue].name, WARMUP[venue].detail, '不取球，四排站好', '禁止绕环；冬天先关节后跑步')
-          + flowRow('2 游戏一·学新动作', T.g1, themeWrap(theme,g.name), g.play+'<br><b>组织：</b>'+orgLine, '示范一遍会就不用多说——别把体育课上成语言课', skill==='pass' ? '传球 2 米起步、只往胸口传，听哨齐传齐收' : (skill==='shoot' ? '画投篮线/圈防反弹砸脸；投不进不纠缠' : '间距一臂；球失控先停再听讲'))
-          + flowRow('3 游戏二·复习', T.g2, themeWrap(theme,R.name), R.play+'<br><b>组织：</b>'+orgLine, '已会动作保证练习量；分组轮换时配班盯一组', revKey==='pass' ? '2 米起、只往胸口，哨响齐传齐收' : '间距一臂')
-          + flowRow('4 游戏三·体能', T.fit, themeWrap(theme,fitName), S.fit.play+'<br><b>不能省：</b>体能是基础能力，砍掉违背课程设计；新动作大面积卡壳时本节可挪用，下节课要补回。', '分组轮换，排队等待超 2 分钟=分组设计有问题', '抛球往两边偏、不朝中间；追逐规定路线')
-          + flowRow('5 放松', T.r, '肌肉＋心率', RELAX, '围圈坐好', '心率降下来再回班');
+          + flowRow('2 游戏一·学新动作', T.g1, themeWrap(theme,g.name), g1play, '示范一遍会就不用多说——别把体育课上成语言课', nb?'无球课：间距一臂即可' : (skill==='pass' ? '传球 2 米起步、只往胸口传，听哨齐传齐收' : (skill==='shoot' ? '画投篮线/圈防反弹砸脸；投不进不纠缠' : '间距一臂；球失控先停再听讲')))
+          + (T.g2>0 ? flowRow('3 游戏二·复习', T.g2, themeWrap(theme,R.name), R.play+'<br><b>组织：</b>'+orgLine, '已会动作保证练习量；分组轮换时配班盯一组', !nb && revKey==='pass' ? '2 米起、只往胸口，哨响齐传齐收' : '间距一臂') : '')
+          + flowRow((T.g2>0?'4':'3')+' 游戏三·体能', T.fit, themeWrap(theme,fitName), fitPlay+'<br><b>不能省：</b>体能是基础能力，砍掉违背课程设计；新动作大面积卡壳时本节可挪用，下节课要补回。', '分组轮换，排队等待超 2 分钟=分组设计有问题', '抛球往两边偏、不朝中间；追逐规定路线')
+          + flowRow((T.g2>0?'5':'4')+' 放松', T.r, '肌肉＋心率', RELAX, '围圈坐好', '心率降下来再回班');
       layerHtml = layerBox(S.layer);
     }
   }
 
-  const flow = `<div class="sec">课堂流程（共 ${dur} 分钟）</div>
-    <table class="flow"><tr><th style="width:96px">环节</th><th style="width:44px">时间</th><th style="width:150px">玩法</th><th>内容与话术</th><th style="width:170px">组织要点</th><th style="width:150px">安全要点</th></tr>${rows}</table>`;
+  const acct = diffShow ? '热身＋常规（取球·抱球·口令·注意力）＋球性兼体能＋放松'
+    : (T.g2>0 ? `热身${T.w}＋游戏一${T.g1}＋游戏二${T.g2}＋体能${T.fit}＋放松${T.r}` : `热身${T.w}＋游戏一${T.g1}＋体能${T.fit}＋放松${T.r}`);
+  const tnote = diffShow ? '⏱ 新生常规课：课时变短，压的是「球性游戏」时长和环节合并；站位·取球·三口令一分钟不减——这是后面每节课的地基。'
+    : (dur<=15 ? `⏱ ${dur} 分钟课（小班课时）：只保「热身＋新动作＋体能＋放松」四个环节，复习环节取消，挪到下节课或晨间练球时间。`
+    : (dur<30 ? `⏱ ${dur} 分钟 vs 30 分钟标准课：五个环节都在——游戏二压缩到 ${T.g2} 分钟（标准 7 分钟），热身、体能、放松一分钟不减。`
+    : '⏱ 30 分钟标准课时间账：热身 5 ＋ 新动作 10 ＋ 复习 7 ＋ 体能 6 ＋ 放松 2。'));
+  const flow = `<div class="sec">课堂流程（共 ${dur} 分钟：${acct}）</div>
+    <table class="flow"><tr><th style="width:96px">环节</th><th style="width:44px">时间</th><th style="width:150px">玩法</th><th>内容与话术</th><th style="width:170px">组织要点</th><th style="width:150px">安全要点</th></tr>${rows}</table><div class="tnote">${tnote}</div>`;
 
   const checks = `<div class="sec">下课 1 分钟自评（两指标＋四有）</div>
     <div class="selfcheck">
@@ -477,7 +534,7 @@ function render(){
 
   const note = `<div class="note">口径说明：三基本功＝运球（拍球是入门形态）·传球·投篮；三个通用口令＝球抱好/球放脚边/眼睛看我；热身禁腕踝膝绕环；体能游戏每课必有。传球比喻与分龄数字为补充草案，分龄定档以本园教研通知为准。生成自「幼儿体育老师工作台 · 教案生成器」。</div>`;
 
-  document.getElementById('plan').innerHTML = header + frames + goals + safetyBox + flow + layerHtml + checks + note;
+  document.getElementById('plan').innerHTML = header + warnHtml + diffHtml + frames + goals + safetyBox + flow + layerHtml + checks + note;
 }
 
 function layerBox(L){
@@ -489,12 +546,22 @@ function layerBox(L){
   </div>`;
 }
 
-function routineRows(T, theme, venue, orgBase){
+function routineRows(T, theme, venue, orgBase, dur, nb){
+  if(dur<=15){
+    const ball = dur - T.w - 4 - T.r;
+    return flowRow('1 热身', T.w, WARMUP[venue].name, WARMUP[venue].detail, '不取球，先站四排', '禁止绕环；冬天先关节后跑步')
+      + flowRow('2 取球·抱球·三口令', 4, '小火车取球＋固定抱球＋三口令', '听信号一组一组取球——<b class="q">「第一排先来，像小火车。」</b>拿到球立刻抱好（贴肚子）；三口令各 1 遍：<b class="q">球抱好 / 球放脚边 / 眼睛看我</b>。', orgBase, '取球环节最容易乱，慢就是快')
+      + flowRow('3 球性游戏（兼体能）', ball, nb?'徒手·听号令游戏':themeWrap(theme,'滚出去·捡回来'), nb?'口香糖＋木头人（无球版）先玩起来；球到位后第一时间补「滚出去·捡回来」。':'先让孩子愿意玩：滚出去、听哨停、捡回来抱好；玩熟了加「抱球走弯道」。<b>本环节兼体能位</b>——末尾加 2 分钟「老狼老狼（抱球版）」追逐。', '开头先喊 1 遍「眼睛看我」收注意力再开始', '间距一臂；场地空旷无干扰')
+      + flowRow('4 放松', T.r, '肌肉＋心率', RELAX, '围圈坐好', '心率降下来再回班');
+  }
+  const mid = dur<=25;
+  const t1 = mid?3:4, t2 = mid?4:5, t3 = mid?4:5;
+  const ball = T.g1+T.g2+T.fit - t1 - t2 - t3;
   return flowRow('1 热身', T.w, WARMUP[venue].name, WARMUP[venue].detail, '不取球，先站四排', '禁止绕环；冬天先关节后跑步')
-    + flowRow('2 站位与取球', 4, '站四排＋「小火车」取球', '定好球筐位置和行走路线；听信号一组一组取球——<b class="q">「第一排先来，一组一组像小火车。」</b>拿到球立刻抱好。', orgBase, '取球环节最容易乱，慢就是快')
-    + flowRow('3 抱球姿势＋三口令', 5, '固定抱球＋口令演练', '固定抱球：双手抱贴肚子/单手抱靠边（全班统一）。三口令各练 3 遍：<b class="q">球抱好 / 球放脚边 / 眼睛看我</b>。口哨只用三处：令行禁止、危险、游戏开始。', '孩子吵你别喊——先用口令抓回注意力再说话', '')
-    + flowRow('4 注意力游戏', 5, themeWrap(theme,'举球比高')+' ＋ '+themeWrap(theme,'口香糖'), '「把球举起来，看谁举到最高」→「篮球变口香糖，粘住小肚子/粘住头」。球被「管」住，人进入游戏状态。', '这是之后每节课抓注意力的常规武器', '')
-    + flowRow('5 球性游戏', T.g1+T.g2+T.fit-14, themeWrap(theme,'滚出去·捡回来'), '不摆课堂架子，先让孩子愿意玩：滚出去、听哨停、捡回来抱好；玩熟了加「抱球走弯道」。<b>本环节兼体能位</b>——末尾加 2 分钟「老狼老狼（抱球版）」追逐，保证运动量。', '间距一臂；场地空旷无干扰', '')
+    + flowRow('2 站位与取球', t1, '站四排＋「小火车」取球', '定好球筐位置和行走路线；听信号一组一组取球——<b class="q">「第一排先来，一组一组像小火车。」</b>拿到球立刻抱好。', orgBase, '取球环节最容易乱，慢就是快')
+    + flowRow('3 抱球姿势＋三口令', t2, '固定抱球＋口令演练', '固定抱球：双手抱贴肚子/单手抱靠边（全班统一）。三口令各练 3 遍：<b class="q">球抱好 / 球放脚边 / 眼睛看我</b>。口哨只用三处：令行禁止、危险、游戏开始。', '孩子吵你别喊——先用口令抓回注意力再说话', '')
+    + flowRow('4 注意力游戏', t3, themeWrap(theme,'举球比高')+' ＋ '+themeWrap(theme,'口香糖'), nb?'无球课：直接玩「口香糖」——「篮球变口香糖，粘住小肚子/粘住头」；「举球比高」等有球日再玩。':'「把球举起来，看谁举到最高」→「篮球变口香糖，粘住小肚子/粘住头」。球被「管」住，人进入游戏状态。', '这是之后每节课抓注意力的常规武器', '')
+    + flowRow('5 球性游戏', ball, nb?'徒手·听号令游戏':themeWrap(theme,'滚出去·捡回来'), nb?'口香糖＋木头人（无球版）先玩起来；球到位后第一时间补「滚出去·捡回来」＋「抱球走弯道」。':'不摆课堂架子，先让孩子愿意玩：滚出去、听哨停、捡回来抱好；玩熟了加「抱球走弯道」。<b>本环节兼体能位</b>——末尾加 2 分钟「老狼老狼（抱球版）」追逐，保证运动量。', '间距一臂；场地空旷无干扰', '')
     + flowRow('6 放松', T.r, '肌肉＋心率', RELAX, '围圈坐好', '心率降下来再回班');
 }
 
@@ -523,6 +590,8 @@ function flowRow(stage, min, name, play, org, saf){
   }
 })();
 
+document.getElementById('age').addEventListener('change', syncDur);
+syncDur();
 document.querySelectorAll('.formcol input, .formcol select').forEach(el=>{
   el.addEventListener('input', render);
   el.addEventListener('change', render);

@@ -242,7 +242,9 @@ const SKILLS = {
         std:'检验：行进间运球走 5 米不掉。运球一步接投篮等组合动作留到复习课。'}
     },
     fit:{ name:'红绿灯（运球版）', play:'抱球/运球听口令行进——<b class="q">「绿灯走、红灯停」</b>，口哨=急停。练「听信号＋控球」两条腿，操场绕圈跑动，室内改原地高抬腿＋短折返。'},
-    layer:{ no:'下场带到一边：先「球宝宝睡觉」按住不动，再轻轻按 3 下，体会手指发力；', half:'蹲在旁边一句口令纠错：<b class="q">「手指按，球过腰。」</b>会了立刻退出，去顾下一个；', yes:'加难度：左右手交替拍；中班加运双球（一个声音）；大班加行进运球距离或计数挑战（拍满 N 个来报数）。'}
+    layer:{ no:'下场带到一边：先「球宝宝睡觉」按住不动，再轻轻按 3 下，体会手指发力；', half:'蹲在旁边一句口令纠错：<b class="q">「手指按，球过腰。」</b>会了立刻退出，去顾下一个；', yes:{s:'加难度：左手拍、右手拍交替；拍满 5 个来报数。',
+         m:'加难度：左右手交替拍；加运双球——「两个球只能发出一个声音」；拍满 20 个来报数。',
+         b:'加难度：左右手交替拍；加行进运球距离；拍满 30 个来报数。'}}
   },
   pass:{
     name:'传球',
@@ -255,7 +257,9 @@ const SKILLS = {
         std:'检验：双人连续传接 10 个不掉。不练长传，不引入争抢。'}
     },
     fit:{ name:'冲击波（1、2、3——推！）', play:'两人一组推滚球比远／对墙推球，练<b>上肢推送发力</b>，正好反哺传球投篮的「推、送」。分组轮换，排队不超 2 分钟。'},
-    layer:{ no:'下场带回 2 米退阶：先滚球、再下手推球，体会「推出去、接得住」；', half:'固定 2 米推传，蹲旁边只纠一句：<b class="q">「推——送——给你。」</b>', yes:'加距离到 3–4 米；大班加移动接球；计数挑战「连续 10 个不掉来报数」。'}
+    layer:{ no:'下场带回 2 米退阶：先滚球、再下手推球，体会「推出去、接得住」；', half:'固定 2 米推传，蹲旁边只纠一句：<b class="q">「推——送——给你。」</b>', yes:{s:'加距离到 2–3 米；计数挑战「连续 5 次滚到同伴手边来报数」。',
+         m:'加距离到 3 米；试着加一步移动接球；计数挑战「连续 10 个不掉来报数」。',
+         b:'加距离到 4 米；加移动中接球；计数挑战「连续 10 个不掉来报数」。'}}
   },
   shoot:{
     name:'投篮',
@@ -268,12 +272,41 @@ const SKILLS = {
         std:'检验：组合动作连贯、动作不变形。不组织投篮比赛。'}
     },
     fit:{ name:'冲击波（1、2、3——推！）', play:'两人一组推滚球比远，练<b>推送发力</b>——投篮的「送」全靠它。也可换「老狼老狼几点了（抱球版）」练下肢追逐。分组轮换，等待不超 2 分钟。'},
-    layer:{ no:'先徒手练「蹲下—送—拜拜」，动作做出来再持球，离筐近一点给成功体验；', half:'近距离投圈，只纠一句：<b class="q">「蹲下，手送出去。」</b>', yes:'加距离或换小一点的目标；大班做「运球一步→投篮」组合。'}
+    layer:{ no:'先徒手练「蹲下—送—拜拜」，动作做出来再持球，离筐近一点给成功体验；', half:'近距离投圈，只纠一句：<b class="q">「蹲下，手送出去。」</b>', yes:{s:'离目标退远半步，或换小一点的目标；动作对就大声表扬，不比进球。',
+         m:'退到投篮线后，或换小一点的目标；仍然只评动作、不评进球。',
+         b:'加距离或换小目标；做「运球一步→蹲下送球」组合。'}}
   }
 };
+const STANDARD = {
+  dribble:{
+    s:{entry:'连续按 3 下球不跑掉', solid:'连拍 5 个', exam:'5 个'},
+    m:{entry:'连续拍 10 个不失误',   solid:'连拍 20 个', exam:'20 个'},
+    b:{entry:'行进间运球走 5 米不掉', solid:'连拍 30 个＋节奏报数', exam:'30 个'}
+  },
+  pass:{
+    s:{entry:'2 米内滚球，5 次里 3 次到同伴手边', solid:'下手推球 2 米内', exam:'5 次中 3 次'},
+    m:{entry:'3 米推传并接住，5 次里 3 次',       solid:'推传 3 米＋加一步移动接', exam:'5 次中 3 次'},
+    b:{entry:'3 米传接连续 10 个不掉',            solid:'4 米＋移动中接球', exam:'5 次中 3 次'}
+  },
+  shoot:{
+    s:{entry:'做出「蹲＋手随球送出」', solid:'近距离投大目标，动作对就算好球', exam:'动作 10 次'},
+    m:{entry:'10 次里 7 次动作达标',   solid:'投篮线后投目标，10 次 7 次达标', exam:'动作 10 次'},
+    b:{entry:'运球一步→蹲下送球，动作连贯', solid:'近距离简易筐，动作不变形', exam:'动作 10 次'}
+  }
+};
+function rPlay(R, age){ return (R && R.playBy && R.playBy[age]) || (R? R.play : ''); }
+function stdLadder(k, age){
+  const st = STANDARD[k] && STANDARD[k][age]; if(!st) return '';
+  return '<div class="tnote"><b>本班'+SKILLS[k].name+'定档：</b>入门 '+st.entry+' <b>→</b> 巩固 '+st.solid+' <b>→</b> 期末测评 '+st.exam
+       + '。<b>本课「技能目标」用入门档</b>，复习环节与「已经会的→加难度」用巩固档；期末测评按巩固档收。定档数字以本园教研通知为准。</div>';
+}
 const REVIEW = {
   ballfeel:{ name:'球性熟悉／抱球走', play:'「滚出去·捡回来」听哨滚球、捡回抱好；再玩「抱球走弯道」绕锥桶（锥桶少就用圈/水瓶代替），球贴肚子不掉。' },
-  dribble:{ name:'拍球（运球）', play:'「拍球报数挑战」：小班连拍 5 个／中班 10 个／大班 20 个，边拍边报数；大班可加运双球——「两个球只能发出一个声音」。' },
+  dribble:{ name:'拍球（运球）',
+    play:'「拍球报数挑战」：按本班巩固档边拍边报数。',
+    playBy:{ s:'「拍球报数挑战」：连拍 5 个，边拍边报数，拍满就集体欢呼。',
+             m:'「拍球报数挑战」：连拍 20 个，边拍边报数；有余力的加运双球——「两个球只能发出一个声音」。',
+             b:'「拍球报数挑战」：连拍 30 个＋节奏报数；加运双球——「两个球只能发出一个声音」。' } },
   pass:{ name:'传球', play:'「开火车传球」：一组纵队，从车头传到车尾，球到了齐喊「呜——」；口令只有一个——双手推、说「给你」，只往胸口传。' },
   shoot:{ name:'投篮', play:'「神投手·只比动作」：投圈/画点，10 次里 7 次「蹲＋送」达标就集体欢呼，进不进不提。' }
 };
@@ -315,7 +348,7 @@ const HANDS_FREE = {
 const HF_GAME = { name:'口香糖（无球版）', play:'老师喊「篮球变口香糖，粘住小肚子/粘住头/粘住膝盖」，孩子快速贴住对应部位——无球也能练听信号快速反应。' };
 const HF_FIT = FITS[3];
 const CONS = {
-  dribble:{ name:'拍球挑战赛', play:'按上周目标全班挑战，当场报数记录：完全不会→按住再轻按 3 下；要指导才会→达标个数（小班 5–10／中班 20／大班 30，按本班进度）；已经会的→加码（左右手／双球／行进）。',
+  dribble:{ name:'拍球挑战赛', play:'按上周目标全班挑战，当场报数记录：完全不会→按住再轻按 3 下；要指导才会→达标个数（本班档 {DRIBBLE_EXAM}，按本班进度）；已经会的→加码（左右手／双球／行进）。',
     std:'检验：每个孩子都比上周拍得更多更稳；记下「会了」名单。'},
   pass:{ name:'传球达人赛', play:'推传准度赛（5 次中 3）＋「开火车传球」接力。分层：不会→2 米滚球；半会→2 米推传；会→3–4 米推传。',
     std:'检验：推传 5 中 3 的人数比上周多。'}
@@ -323,7 +356,7 @@ const CONS = {
 const SEM_SPECIAL = {
   mix:{ name:'三站小循环', play:'全班分 3 组轮换三站：①拍球站（连拍挑战）②传球站（推传 5 中 3）③投篮站（动作达标 10 次）；哨响换站，每站约 4 分钟。这就是「体能大循环」的雏形。',
     std:'检验：三站都做完，每站等待不超 2 分钟。' },
-  assess:{ name:'期末测评', play:'按本班定档逐项测：拍球定档个数（小班约 5–10／中班约 20／大班约 30）· 传球 5 中 3 · 投篮动作 10 次；轮空的孩子由配班带球性游戏。<b>定档数字以本园教研通知为准。</b>',
+  assess:{ name:'期末测评', play:'按本班定档逐项测：拍球 {DRIBBLE_EXAM} · 传球 {PASS_EXAM} · 投篮 {SHOOT_EXAM}；轮空的孩子由配班带球性游戏。<b>定档数字以本园教研通知为准。</b>',
     std:'检验：记录每项达标名单→写进学期汇报，下学期按新起点定档。' },
   report:{ name:'篮球操雏形＋最熟游戏', play:'篮球操四步法走前两步：选本班熟的音乐→放来测节奏、全班跟拍；再玩本学期最熟的游戏收尾。拍两帧视频存档（园名周次＋学期成果）。',
     std:'检验：全班能跟音乐拍 2 个八拍即成功。' }
@@ -427,6 +460,12 @@ function weekSpec(age, w){
     sp.fitIdx = sp.kind==='report' ? 3 : (sp.kind==='assess' ? 2 : (sp.week-1)%4);
   }
   sp.stageLabel = sp.stage;
+  if(sp && typeof sp.play === 'string'){
+    sp.play = sp.play
+      .split('{DRIBBLE_EXAM}').join(STANDARD.dribble[age].exam)
+      .split('{PASS_EXAM}').join(STANDARD.pass[age].exam)
+      .split('{SHOOT_EXAM}').join(STANDARD.shoot[age].exam);
+  }
   return sp;
 }
 
@@ -468,7 +507,10 @@ function render(){
   else if(nb) warns.push(['red', '🚨 器材严重预警：球 '+balls+' 个 ÷ 孩子 '+kids+' 人（覆盖率 '+Math.round(balls/kids*100)+'%）——按标准教案上，排队等待必然超 2 分钟：纪律混乱、安全隐患、技能目标全部落空。本教案已按「徒手课」降级生成，球集中用于教师示范和「小老师」展示；或与配班商量分批上课。']);
   else if(balls<kids) warns.push(['warn', '⚠ 器材预警：球 '+balls+' 个 ＜ 孩子 '+kids+' 人 → 全课分两大组轮换（一半徒手、一半持球），讲解要更精简。']);
   if(cones<8) warns.push(['note', '锥桶 '+cones+' 个（建议≥8）→ 点位标记用'+(rings>0?'圈、水瓶':'水瓶、书包，或粉笔直接画点')+'替代。']);
-  if(hoops===0 && shootWeek) warns.push(['note', '篮架 0 个 → 画点、摆圈当篮筐（动作到位才是目标），投篮线用粉笔画。']);
+  if(hoops===0 && shootWeek){
+    if(rings>0) warns.push(['note', '篮架 0 个 → 画点、摆圈当篮筐（动作到位才是目标），投篮线用粉笔画。']);
+    else warns.push(['warn', '⚠ 篮架 0、圈也 0——本课没有任何可投的目标物，投篮环节做不成。课前必须先备替代筐：粉笔在地上画圈／纸箱、收纳筐倒扣／墙面贴靶点，投篮线同样用粉笔画。']);
+  }
   if(kids>=32) warns.push(['note', '人数 '+kids+' 人（≥32）→ 按能力分 A/B 组教同一动作，配班老师盯一组；热身放松全体一起。']);
   if(negFields.length) warns.push(['warn', '⚠ 器材有 '+negFields.length+' 项填成了负数 → 已按 0 计算并据此降级。请回表核对实际数量。']);
   if(kids>60) warns.push(['warn', '⚠ 人数 '+kids+' 人——单节课超 60 人已超出本教案的分组模型（四排横队、A/B 组轮换都撑不住），排队时长无法控制在 2 分钟内。请按班拆开、分别生成教案。']);
@@ -482,6 +524,9 @@ function render(){
       <div class="goal"><b>技能目标</b>${goalSkillTxt}</div>
       <div class="goal"><b>情感目标</b>${goalEmoTxt}</div>
     </div>`;
+
+  const ladderKey = isSem ? ((spec.kind==='skill'||spec.kind==='cons') ? spec.skill : '') : (isNew ? '' : skill);
+  const ladderHtml = ladderKey ? stdLadder(ladderKey, age) : '';
 
   const frameGoal = isSem ? spec.stdGoal : (isNew? '课堂常规：站位·取球·抱球·三口令' : S.name+'：'+goalSkillTxt);
   const frames = `<div class="frames"><b>拍视频开头两帧：</b>第 1 帧「${garden||'××园'} 第${isSem? semWk : week}周篮球课」→ 第 2 帧「教学目标：${frameGoal}」。视频控制在 1 分钟左右，发工作群不发家长群。</div>`;
@@ -519,14 +564,14 @@ function render(){
         const g1name = nbSkill ? themeWrap(theme, HANDS_FREE[spec.skill].name) : spec.g1name;
         rows += flowRow('2 游戏一·'+ (spec.kind==='skill'? '学新动作':'本周主打'), T.g1, g1name, g1play + '<br><b>组织：</b>'+orgLine, '示范一遍会就不用多说——别把体育课上成语言课', g1saf);
         if(T.g2>0 && revPlay){
-          rows += flowRow('3 游戏二·复习', T.g2, nb?HF_GAME.name:themeWrap(theme, revPlay.name), (nb?HF_GAME.play:revPlay.play)+'<br><b>组织：</b>'+orgLine, '已会动作保证练习量；分组轮换时配班盯一组', !nb && spec.reviewKey==='pass' ? '2 米起、只往胸口，哨响齐传齐收' : '间距一臂');
+          rows += flowRow('3 游戏二·复习', T.g2, nb?HF_GAME.name:themeWrap(theme, revPlay.name), (nb?HF_GAME.play:rPlay(revPlay,age))+'<br><b>组织：</b>'+orgLine, '已会动作保证练习量；分组轮换时配班盯一组', !nb && spec.reviewKey==='pass' ? '2 米起、只往胸口，哨响齐传齐收' : '间距一臂');
         }
       }
       rows += flowRow((T.g2>0?'4':'3')+' 游戏三·体能', T.fit, nb?HF_FIT.name:themeWrap(theme,fit.name), (nb?HF_FIT.play:fit.play)+'<br><b>不能省：</b>体能是基础能力，砍掉违背课程设计。', '分组轮换，排队等待超 2 分钟=分组设计有问题', '抛球往两边偏、不朝中间；追逐规定路线')
             + flowRow((T.g2>0?'5':'4')+' 放松', T.r, '肌肉＋心率', RELAX, '围圈坐好', '心率降下来再回班');
     }
     const layerSrc = spec.kind==='skill' ? SKILLS[spec.skill].layer : (spec.kind==='cons' ? SKILLS[spec.skill].layer : (spec.kind==='r1' ? null : GENERIC_LAYER));
-    if(layerSrc) layerHtml = layerBox(layerSrc);
+    if(layerSrc) layerHtml = layerBox(layerSrc, age);
     layerHtml += semTableHtml(age, semWk);
   } else {
     if(isNew){
@@ -542,10 +587,10 @@ function render(){
       if(T.g2===0) g1play += '<br><b>课时短：</b>本节不安排复习，下节课先复习这个动作再推进。';
       rows = flowRow('1 热身', T.w, WARMUP[venue].name, WARMUP[venue].detail, '不取球，四排站好', '禁止绕环；冬天先关节后跑步')
           + flowRow('2 游戏一·学新动作', T.g1, themeWrap(theme,g.name), g1play, '示范一遍会就不用多说——别把体育课上成语言课', nb?'无球课：间距一臂即可' : (skill==='pass' ? '传球 2 米起步、只往胸口传，听哨齐传齐收' : (skill==='shoot' ? '画投篮线/圈防反弹砸脸；投不进不纠缠' : '间距一臂；球失控先停再听讲')))
-          + (T.g2>0 ? flowRow('3 游戏二·复习', T.g2, themeWrap(theme,R.name), R.play+'<br><b>组织：</b>'+orgLine, '已会动作保证练习量；分组轮换时配班盯一组', !nb && revKey==='pass' ? '2 米起、只往胸口，哨响齐传齐收' : '间距一臂') : '')
+          + (T.g2>0 ? flowRow('3 游戏二·复习', T.g2, themeWrap(theme,R.name), rPlay(R,age)+'<br><b>组织：</b>'+orgLine, '已会动作保证练习量；分组轮换时配班盯一组', !nb && revKey==='pass' ? '2 米起、只往胸口，哨响齐传齐收' : '间距一臂') : '')
           + flowRow((T.g2>0?'4':'3')+' 游戏三·体能', T.fit, themeWrap(theme,fitName), fitPlay+'<br><b>不能省：</b>体能是基础能力，砍掉违背课程设计；新动作大面积卡壳时本节可挪用，下节课要补回。', '分组轮换，排队等待超 2 分钟=分组设计有问题', '抛球往两边偏、不朝中间；追逐规定路线')
           + flowRow((T.g2>0?'5':'4')+' 放松', T.r, '肌肉＋心率', RELAX, '围圈坐好', '心率降下来再回班');
-      layerHtml = layerBox(S.layer);
+      layerHtml = layerBox(S.layer, age);
     }
   }
 
@@ -567,17 +612,23 @@ function render(){
 
   const note = `<div class="note">口径说明：三基本功＝运球（拍球是入门形态）·传球·投篮；三个通用口令＝球抱好/球放脚边/眼睛看我；热身禁腕踝膝绕环；体能游戏每课必有。传球比喻与分龄数字为补充草案，分龄定档以本园教研通知为准。生成自「幼儿体育老师工作台 · 教案生成器」。</div>`;
 
-  let planHtml = header + warnHtml + diffHtml + frames + goals + safetyBox + flow + layerHtml + checks + note;
-  if(rings===0) planHtml = planHtml.split('圈/水瓶').join('水瓶/书包');
+  let planHtml = header + warnHtml + diffHtml + frames + goals + ladderHtml + safetyBox + flow + layerHtml + checks + note;
+  if(rings===0){
+    planHtml = planHtml.split('圈/水瓶').join('水瓶/书包');
+    planHtml = planHtml.split('摆圈').join('粉笔画圈');
+    planHtml = planHtml.split('投圈').join('投画好的圈');
+    planHtml = planHtml.split('大圈（或筐沿）').join('粉笔画的大圈（或筐沿）');
+  }
   document.getElementById('plan').innerHTML = planHtml;
 }
 
-function layerBox(L){
+function layerBox(L, age){
+  const yesTxt = (L.yes && typeof L.yes === 'object') ? (L.yes[age] || L.yes.m) : L.yes;
   return `<div class="sec">分层指导（核心任务：下场教不会的孩子）</div>
   <div class="layer">
     <div class="lcard"><b>完全不会 → 下场指导</b>${L.no}</div>
     <div class="lcard"><b>要指导才会 → 一句口令纠错</b>${L.half}</div>
-    <div class="lcard"><b>已经会的 → 加难度</b>${L.yes}</div>
+    <div class="lcard"><b>已经会的 → 加难度</b>${yesTxt}</div>
   </div>`;
 }
 
